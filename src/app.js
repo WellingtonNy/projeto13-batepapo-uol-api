@@ -171,9 +171,12 @@ app.get("/messages", async (req, res) => {
 
   // atualizar usuario
  
-app.put("/status", async (req, res) => {
+app.post("/status", async (req, res) => {
  
     const { user } = req.headers
+
+    if(!user) return res.sendStatus(404)
+
     const onTrue = await db.collection('participants').findOne({ name: user })
     const time = Date.now()
 
