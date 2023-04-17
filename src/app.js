@@ -88,7 +88,7 @@ app.get("/participants", async (req, res) => {
 //post mensagem
 
 app.post("/messages", async (req, res) => {
-    const time = dayjs().format("hh:mm:ss")
+    const time = dayjs(Date.now()).format("hh:mm:ss")
     const {to,text,type}=req.body
     const from = req.headers.user
 
@@ -96,7 +96,7 @@ app.post("/messages", async (req, res) => {
 
         to: joi.string().required(),
         text: joi.string().required(),
-        type: joi.string().valid("private_message","message" ).required()
+        type: joi.string().valid("private_message","message").required()
       })
 
       const validation = msgSchema.validate(req.body,{abortEarly: false})
@@ -107,9 +107,9 @@ app.post("/messages", async (req, res) => {
     return res.status(422).send(errors)
   }
     
-  const usuarioT = await db.collection("participants").findOne({name: from});
+  const usuarioT = await db.collection("participants").findOne({name:from});
 
-if (!usuarioT) {
+if (!usuarioT && from!=='Todos') {
       return res.status(422).send('Destinatario não encontrado');
     }
 
@@ -125,7 +125,43 @@ const msg ={to,text,type,from,time}
 })
 
 
-//outra coisa
+//get msg
+
+app.get("/messages", async (req, res) => {
+
+    const { user } = req.headers
+    const { query } = req
+    const chatTotal = await db.collection("messages").find().toArray();
+  
+    let chatFiltrado = chatTotal.filter((chatF) => 
+    chatF.user === user ||
+    chatF.to === "Todos" || 
+    chatF.from === user ||
+    chatF.to === user ||
+    chatF.type === "status"
+    )
+  
+    try {
+      
+      if (
+   query && query.limit && (Number(query.limit) < 1 || isNaN(Number(query.limit))))
+    {
+        return res.status(422).send('Limite no formato errado')
+       
+      } if (query.limit) {
+  
+        res.status(200).send(chatFiltrado.splice(-query.limit).reverse())
+  
+      } else {
+  
+        res.status(200).send(chatFiltrado);
+  
+      }
+  
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+  })
 
 
 
