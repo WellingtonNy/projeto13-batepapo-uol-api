@@ -85,6 +85,47 @@ app.get("/participants", async (req, res) => {
 })
 
 
+//post mensagem
+
+app.post("/messages", async (req, res) => {
+    const time = dayjs().format("hh:mm:ss")
+    const {to,text,type}=req.body
+    const from = req.headers.user
+
+    const msgSchema = joi.object({
+
+        to: joi.string().required(),
+        text: joi.string().required(),
+        type: joi.string().valid("private_message","message" ).required()
+      })
+
+      const validation = msgSchema.validate(req.body,{abortEarly: false})
+
+      if(validation.error){
+    console.log(validation.error.details);
+    const errors = validation.error.details.map(datail => datail.message)
+    return res.status(422).send(errors)
+  }
+    
+  const usuarioT = await db.collection("participants").findOne({name: from});
+
+if (!usuarioT) {
+      return res.status(422).send('Destinatario não encontrado');
+    }
+
+const msg ={to,text,type,from,time}
+
+    try {
+
+        await db.collection("messages").insertOne(msg)
+
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+})
+
+
+//outra coisa
 
 
 
