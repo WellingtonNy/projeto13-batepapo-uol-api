@@ -198,6 +198,32 @@ app.post("/status", async (req, res) => {
         res.status(500).send(err.message)
     }
   })
+ 
+
+  // remover afk
+
+  setInterval(async () => {
+
+    const remover = await db.collection("participants").find({ lastStatus: {$lt: Date.now() - 10000}}).toArray()
+
+    if (remover.length !== 0) {
+
+        for (const usuario of remover) {
+
+            await db.collection("participants").deleteOne({ name: usuario.name });
+          
+        await db.collection("messages").insertOne(
+            {
+              from: usuario.name,
+              to: "Todos",
+              text: "sai da sala...",
+              type: "status",
+              time: dayjs(Date.now()).format("hh:mm:ss")
+            }
+            )
+          }
+    }
+  }, 15000)
 
 
 
