@@ -157,7 +157,7 @@ app.get("/messages", async (req, res) => {
   
       } else {
   
-        res.status(200).send(chatFiltrado);
+        res.status(200).send(chatFiltrado)
   
       }
   
@@ -165,6 +165,37 @@ app.get("/messages", async (req, res) => {
         res.status(500).send(err.message)
     }
   })
+
+
+
+
+  // atualizar usuario
+ 
+app.put("/status", async (req, res) => {
+ 
+    const { user } = req.headers
+    const onTrue = await db.collection('participants').findOne({ name: user })
+    const time = Date.now()
+
+    try {
+
+      if (onTrue) {
+
+   await db.collection("participants").updateOne({ name: user },
+    { $set: {lastStatus:time}})
+
+        return  res.sendStatus(200)
+
+      } else {
+
+        res.sendStatus(404)
+
+      }
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+  })
+
 
 
 
