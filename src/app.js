@@ -118,11 +118,14 @@ const msg ={to,text,type,from,time}
     try {
 
         await db.collection("messages").insertOne(msg)
+        res.sendStatus(201)
 
     } catch (err) {
         res.status(500).send(err.message)
     }
 })
+
+
 
 
 //get msg
